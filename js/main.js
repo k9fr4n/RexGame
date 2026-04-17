@@ -68,7 +68,8 @@ const rim = new THREE.DirectionalLight(0x7df9ff, 0.6);
 rim.position.set(-10, 6, -12);
 scene.add(rim);
 
-// Starfield (skydome speckle)
+// Starfield (skydome speckle) — kept at module scope for day/night blending
+let stars;
 {
   const g = new THREE.BufferGeometry();
   const N = 900; const arr = new Float32Array(N * 3);
@@ -81,7 +82,7 @@ scene.add(rim);
     arr[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
   }
   g.setAttribute('position', new THREE.BufferAttribute(arr, 3));
-  const stars = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35, sizeAttenuation: true, transparent: true, opacity: 0.85 }));
+  stars = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35, sizeAttenuation: true, transparent: true, opacity: 0.85 }));
   scene.add(stars);
 }
 
@@ -211,6 +212,54 @@ function gameOver() {
   setTimeout(() => $gameOver.classList.remove('hidden'), 650);
 }
 
+// ---------- Day / Night cycle --------------------------------------------
+// Cycle length in meters. speed ~30 -> ~27s per full day/night cycle.
+const DAY_CYCLE_M = 900;
+const _col = {
+  skyDay   : new THREE.Color(0x8ab8dc),
+  skyNight : new THREE.Color(0x060a18),
+  skyDusk  : new THREE.Color(0xe07a4a),
+  sunNoon  : new THREE.Color(0xfff1d6),
+  sunWarm  : new THREE.Color(0xff9554),
+  hemiDay  : new THREE.Color(0x88b4d8),
+  hemiNight: new THREE.Color(0x1a1f3a),
+  tmp      : new THREE.Color(),
+  tmp2     : new THREE.Color(),
+};
+function updateDayNight(travelled) {
+  const phase = ((travelled / DAY_CYCLE_M) % 1 + 1) % 1;        // 0..1
+  const ang   = phase * Math.PI * 2;
+  const sunEl = Math.sin(ang);                                   // -1..1 (elevation)
+  const dayT  = (sunEl + 1) / 2;                                 // 0 night, 1 noon
+  const duskT = Math.exp(-sunEl * sunEl * 12);                   // Gaussian peak at horizon
+
+  // Move the sun in a visible arc (affects shadow direction too)
+  const R = 22;
+  sun.position.set(Math.cos(ang) * R * 0.6, Math.max(-4, Math.sin(ang) * R), 10);
+  sun.intensity = Math.max(0, sunEl) * 1.35 + 0.05;
+  sun.color.copy(_col.sunWarm).lerp(_col.sunNoon, Math.max(0, sunEl));
+
+  hemi.intensity = 0.2 + dayT * 0.55;
+  hemi.color.copy(_col.hemiNight).lerp(_col.hemiDay, dayT);
+
+  rim.intensity = 0.3 + (1 - dayT) * 0.75;
+
+  // Sky + fog blend
+  _col.tmp.copy(_col.skyNight).lerp(_col.skyDay, dayT);
+  _col.tmp.lerp(_col.skyDusk, duskT * 0.55);
+  scene.background.copy(_col.tmp);
+  scene.fog.color.copy(_col.tmp).multiplyScalar(0.85);
+
+  // Stars fade with sun below horizon
+  if (stars) stars.material.opacity = Math.max(0, -sunEl) * 0.95 + 0.05;
+
+  // Neon city windows glow brighter at night
+  if (world.winMat) world.winMat.emissiveIntensity = 0.3 + (1 - dayT) * 1.7;
+
+  // Bloom stronger at night for neon vibes
+  bloom.strength = 0.4 + (1 - dayT) * 0.55;
+}
+
 // ---------- Main loop ----------
 const clock = new THREE.Clock();
 function tick() {
@@ -278,6 +327,7 @@ function tick() {
     camera.lookAt(player.group.position.x * 0.4, 1.4 + player.group.position.y * 0.3, 0);
   }
 
+  updateDayNight(world.travelled);
   composer.render();
   requestAnimationFrame(tick);
 }
