@@ -43,8 +43,23 @@ export class World {
       birdM  : new THREE.MeshStandardMaterial({ color: 0x6a3a1a, roughness: 0.85, side: THREE.DoubleSide }),                           // tan membrane
       egg    : new THREE.MeshStandardMaterial({ color: 0xfff8c0, roughness: 0.22, metalness: 0.15, emissive: 0xffd86b, emissiveIntensity: 1.1 }),
       eggHalo: new THREE.MeshBasicMaterial({ color: 0xffd86b, transparent: true, opacity: 0.4, side: THREE.DoubleSide }),
-      build  : new THREE.MeshStandardMaterial({ color: 0x2a2458, roughness: 0.75, metalness: 0.15 }),                                 // indigo building
-      window : new THREE.MeshStandardMaterial({ color: 0xffcc3a, emissive: 0xffcc3a, emissiveIntensity: 1.5, roughness: 0.4 }),       // golden windows
+      // (build/window now live in this.buildPalette / this.windowPalette below)
+      petalA : new THREE.MeshStandardMaterial({ color: 0xff5a8a, roughness: 0.5, emissive: 0x5a1030, emissiveIntensity: 0.2 }),
+      petalB : new THREE.MeshStandardMaterial({ color: 0xa25bff, roughness: 0.5, emissive: 0x2a0a5a, emissiveIntensity: 0.2 }),
+      petalC : new THREE.MeshStandardMaterial({ color: 0xffd83a, roughness: 0.5, emissive: 0x5a4a00, emissiveIntensity: 0.25 }),
+      petalD : new THREE.MeshStandardMaterial({ color: 0xff7a3a, roughness: 0.5, emissive: 0x5a2000, emissiveIntensity: 0.25 }),
+      stem   : new THREE.MeshStandardMaterial({ color: 0x3fa860, roughness: 0.75 }),
+      crystalA: new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.4, roughness: 0.25, metalness: 0.2, transparent: true, opacity: 0.85 }),
+      crystalB: new THREE.MeshStandardMaterial({ color: 0xff5bff, emissive: 0xff5bff, emissiveIntensity: 1.4, roughness: 0.25, metalness: 0.2, transparent: true, opacity: 0.85 }),
+      crystalC: new THREE.MeshStandardMaterial({ color: 0xaaff5a, emissive: 0xaaff5a, emissiveIntensity: 1.4, roughness: 0.25, metalness: 0.2, transparent: true, opacity: 0.85 }),
+      lamp   : new THREE.MeshStandardMaterial({ color: 0xffcf5a, emissive: 0xffcf5a, emissiveIntensity: 2.2, roughness: 0.35 }),
+      metal  : new THREE.MeshStandardMaterial({ color: 0xbcbfc8, roughness: 0.4, metalness: 0.85 }),
+      blade  : new THREE.MeshStandardMaterial({ color: 0xfae4b0, roughness: 0.6 }),
+      canvasM: new THREE.MeshStandardMaterial({ color: 0xf4e8c4, roughness: 0.9 }),
+      wagonBody: new THREE.MeshStandardMaterial({ color: 0x8a3a20, roughness: 0.75 }),
+      totemA : new THREE.MeshStandardMaterial({ color: 0xe06a3a, roughness: 0.85 }),
+      totemB : new THREE.MeshStandardMaterial({ color: 0x4fd6a0, roughness: 0.85 }),
+      totemC : new THREE.MeshStandardMaterial({ color: 0xffd65a, roughness: 0.85 }),
       // Distant mountain layers (fog-tinted automatically)
       mtFar  : new THREE.MeshStandardMaterial({ color: 0x6a4a7a, roughness: 1.0, flatShading: true }),                                // violet far
       mtMid  : new THREE.MeshStandardMaterial({ color: 0x8a5040, roughness: 1.0, flatShading: true }),                                // red canyon mid
@@ -57,7 +72,24 @@ export class World {
     this.geoRail   = new THREE.BoxGeometry(0.08, 0.08, CHUNK);
 
     // Exposed material for external day/night control
-    this.winMat = this.mat.window;
+    // Building + window palettes (per-instance random pick for colorful skyline)
+    this.buildPalette = [
+      new THREE.MeshStandardMaterial({ color: 0x8a4aff, roughness: 0.55, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: 0x4aa0ff, roughness: 0.55, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: 0xff6a8a, roughness: 0.55, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: 0x4fd6a0, roughness: 0.55, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: 0xffb23a, roughness: 0.55, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: 0xd75aff, roughness: 0.55, metalness: 0.2 }),
+    ];
+    this.windowPalette = [
+      new THREE.MeshStandardMaterial({ color: 0xffd65a, emissive: 0xffd65a, emissiveIntensity: 1.5, roughness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.5, roughness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: 0xff5aff, emissive: 0xff5aff, emissiveIntensity: 1.5, roughness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: 0xaaff5a, emissive: 0xaaff5a, emissiveIntensity: 1.5, roughness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: 0xff9a4a, emissive: 0xff9a4a, emissiveIntensity: 1.5, roughness: 0.4 }),
+    ];
+    // winMat retained for day/night scaling hook (uses the gold one)
+    this.winMat = this.windowPalette[0];
 
     this.chunks       = [];
     this.travelled    = 0;
@@ -162,7 +194,7 @@ export class World {
     const props = [];
     const isCity = (Math.abs(Math.round(z / CHUNK)) % 6) === 0;
     for (const side of [-1, 1]) {
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 12; i++) {
         const zz = (Math.random() - 0.5) * CHUNK;
         const xx = side * (6 + Math.random() * 16);
         const builder = isCity && Math.random() < 0.55 ? this._pickCityProp() : this._pickDesertProp();
@@ -204,16 +236,23 @@ export class World {
 
   _pickDesertProp() {
     const r = Math.random();
-    if (r < 0.20) return this._saguaro;
-    if (r < 0.35) return this._rock;
-    if (r < 0.47) return this._deadTree;
-    if (r < 0.57) return this._tumbleweed;
-    if (r < 0.66) return this._skull;
-    if (r < 0.75) return this._coyote;
-    if (r < 0.83) return this._roadrunner;
-    if (r < 0.90) return this._horse;
-    if (r < 0.95) return this._signpost;
-    return this._campfire;
+    if (r < 0.13) return this._saguaro;
+    if (r < 0.21) return this._barrelCactus;
+    if (r < 0.30) return this._rock;
+    if (r < 0.38) return this._deadTree;
+    if (r < 0.45) return this._tumbleweed;
+    if (r < 0.51) return this._flowers;
+    if (r < 0.57) return this._skull;
+    if (r < 0.64) return this._coyote;
+    if (r < 0.71) return this._roadrunner;
+    if (r < 0.77) return this._horse;
+    if (r < 0.82) return this._signpost;
+    if (r < 0.86) return this._campfire;
+    if (r < 0.91) return this._windmill;
+    if (r < 0.95) return this._wagon;
+    if (r < 0.98) return this._crystal;
+    if (r < 0.99) return this._lampPost;
+    return this._totem;
   }
   _pickCityProp() {
     const r = Math.random();
@@ -367,16 +406,165 @@ export class World {
   }
   _building() {
     const g = new THREE.Group();
-    const h = 6 + Math.random() * 22;
-    const w = 2 + Math.random() * 3;
-    const d = 2 + Math.random() * 3;
-    const b = this._box(w, h, d, this.mat.build); b.position.y = h / 2 - 0.2; g.add(b);
+    const h = 8 + Math.random() * 26;
+    const w = 2.2 + Math.random() * 3.5;
+    const d = 2.2 + Math.random() * 3.5;
+    const bodyMat = this.buildPalette[(Math.random() * this.buildPalette.length) | 0];
+    const winMat  = this.windowPalette[(Math.random() * this.windowPalette.length) | 0];
+    const b = this._box(w, h, d, bodyMat); b.position.y = h / 2 - 0.2; g.add(b);
     for (const s of [-1, 1]) {
-      const wn = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.8, h * 0.8), this.mat.window);
-      wn.position.set(s * (d / 2 + 0.01), h / 2, 0);
-      wn.rotation.y = s > 0 ? -Math.PI / 2 : Math.PI / 2;
-      g.add(wn);
+      const rows = Math.max(2, Math.floor(h / 2.2));
+      const cols = Math.max(2, Math.floor(w / 1.4));
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (Math.random() < 0.35) continue;
+          const sw = (w / cols) * 0.55;
+          const sh = (h / rows) * 0.55;
+          const wn = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), winMat);
+          wn.position.set(
+            s * (d / 2 + 0.02),
+            (r + 0.5) * (h / rows) - 0.2,
+            ((c + 0.5) / cols - 0.5) * w
+          );
+          wn.rotation.y = s > 0 ? -Math.PI / 2 : Math.PI / 2;
+          g.add(wn);
+        }
+      }
     }
+    if (Math.random() < 0.45) {
+      const poleH = 1.2 + Math.random() * 1.5;
+      const pole = this._cyl(0.04, 0.04, poleH, this.mat.metal, 6);
+      pole.position.y = h - 0.2 + poleH / 2;
+      g.add(pole);
+      const beacon = this._sph(0.18, this.mat.lamp, 10);
+      beacon.position.y = h - 0.2 + poleH;
+      g.add(beacon);
+    }
+    return g;
+  }
+
+  _barrelCactus() {
+    const g = new THREE.Group();
+    const h = 0.9 + Math.random() * 0.6;
+    const body = this._cyl(0.55, 0.65, h, this.mat.cactus, 14);
+    body.position.y = h / 2; g.add(body);
+    const petalSet = [this.mat.petalA, this.mat.petalC, this.mat.petalD];
+    const petal = petalSet[(Math.random() * petalSet.length) | 0];
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      const p = this._sph(0.1, petal, 8);
+      p.position.set(Math.cos(a) * 0.18, h + 0.05, Math.sin(a) * 0.18);
+      g.add(p);
+    }
+    const center = this._sph(0.08, this.mat.petalC, 8); center.position.y = h + 0.1; g.add(center);
+    return g;
+  }
+  _flowers() {
+    const g = new THREE.Group();
+    const n = 3 + Math.floor(Math.random() * 4);
+    const petalMats = [this.mat.petalA, this.mat.petalB, this.mat.petalC, this.mat.petalD];
+    for (let i = 0; i < n; i++) {
+      const stemH = 0.35 + Math.random() * 0.25;
+      const stem = this._cyl(0.015, 0.025, stemH, this.mat.stem, 5);
+      const sx = (Math.random() - 0.5) * 0.9, sz = (Math.random() - 0.5) * 0.9;
+      stem.position.set(sx, stemH / 2, sz);
+      g.add(stem);
+      const pm = petalMats[(Math.random() * petalMats.length) | 0];
+      const bloom = this._sph(0.08 + Math.random() * 0.06, pm, 8);
+      bloom.position.set(sx, stemH + 0.05, sz);
+      g.add(bloom);
+    }
+    return g;
+  }
+  _windmill() {
+    const g = new THREE.Group();
+    const h = 3.5 + Math.random() * 1.5;
+    for (const [sx, sz] of [[-0.4,-0.4],[0.4,-0.4],[-0.4,0.4],[0.4,0.4]]) {
+      const leg = this._cyl(0.04, 0.06, h, this.mat.wood, 5);
+      leg.position.set(sx * 0.8, h / 2, sz * 0.8);
+      leg.rotation.x = sz > 0 ? 0.08 : -0.08;
+      leg.rotation.z = sx > 0 ? -0.08 : 0.08;
+      g.add(leg);
+    }
+    for (let lvl = 0; lvl < 3; lvl++) {
+      const y = (lvl + 1) * h / 4;
+      const brace = this._box(0.9, 0.04, 0.04, this.mat.wood); brace.position.y = y; g.add(brace);
+      const brace2 = brace.clone(); brace2.rotation.y = Math.PI / 2; g.add(brace2);
+    }
+    const hub = this._sph(0.12, this.mat.metal, 8); hub.position.y = h + 0.1; g.add(hub);
+    const bladeRoot = new THREE.Group(); bladeRoot.position.set(0, h + 0.1, 0.12);
+    for (let i = 0; i < 6; i++) {
+      const blade = this._box(0.08, 0.9, 0.02, this.mat.blade);
+      blade.position.y = 0.4;
+      const holder = new THREE.Group();
+      holder.rotation.z = (i / 6) * Math.PI * 2;
+      holder.add(blade); bladeRoot.add(holder);
+    }
+    bladeRoot.userData._spin = 1.5 + Math.random();
+    g.add(bladeRoot);
+    this._anim.push(bladeRoot);
+    return g;
+  }
+  _wagon() {
+    const g = new THREE.Group();
+    const body = this._box(1.4, 0.6, 2.6, this.mat.wagonBody); body.position.y = 0.85; g.add(body);
+    for (let i = 0; i < 4; i++) {
+      const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.04, 5, 10, Math.PI), this.mat.wood);
+      hoop.position.set(0, 1.2, -1.0 + i * 0.7);
+      hoop.rotation.y = Math.PI / 2;
+      g.add(hoop);
+    }
+    const canopy = this._box(1.35, 0.05, 2.5, this.mat.canvasM); canopy.position.y = 1.85; g.add(canopy);
+    for (const [sx, sz] of [[-0.65,-0.9],[0.65,-0.9],[-0.65,0.9],[0.65,0.9]]) {
+      const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.07, 6, 14), this.mat.wood);
+      wheel.position.set(sx, 0.4, sz); wheel.rotation.y = Math.PI / 2; g.add(wheel);
+      for (let j = 0; j < 6; j++) {
+        const spoke = this._box(0.05, 0.7, 0.04, this.mat.wood);
+        spoke.position.set(sx, 0.4, sz); spoke.rotation.x = (j / 6) * Math.PI;
+        g.add(spoke);
+      }
+    }
+    return g;
+  }
+  _crystal() {
+    const g = new THREE.Group();
+    const mats = [this.mat.crystalA, this.mat.crystalB, this.mat.crystalC];
+    const n = 3 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < n; i++) {
+      const h = 0.8 + Math.random() * 1.4;
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.18 + Math.random() * 0.15, h, 6), mats[i % mats.length]);
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+      cone.position.set(Math.cos(a) * 0.3, h / 2, Math.sin(a) * 0.3);
+      cone.rotation.z = (Math.random() - 0.5) * 0.3;
+      cone.rotation.x = (Math.random() - 0.5) * 0.3;
+      cone.castShadow = true;
+      g.add(cone);
+    }
+    return g;
+  }
+  _lampPost() {
+    const g = new THREE.Group();
+    const post = this._cyl(0.06, 0.06, 3.2, this.mat.metal, 6); post.position.y = 1.6; g.add(post);
+    const arm  = this._box(0.6, 0.06, 0.06, this.mat.metal); arm.position.set(0.3, 3.15, 0); g.add(arm);
+    const orb  = this._sph(0.22, this.mat.lamp, 10); orb.position.set(0.6, 3.05, 0); g.add(orb);
+    return g;
+  }
+  _totem() {
+    const g = new THREE.Group();
+    const mats = [this.mat.totemA, this.mat.totemB, this.mat.totemC];
+    let y = 0;
+    for (let i = 0; i < 4; i++) {
+      const h = 0.6 + Math.random() * 0.3;
+      const block = this._cyl(0.3, 0.3, h, mats[i % mats.length], 8);
+      block.position.y = y + h / 2; g.add(block);
+      for (const sx of [-0.12, 0.12]) {
+        const eye = this._sph(0.05, this.mat.dark, 6);
+        eye.position.set(sx, y + h * 0.55, 0.3);
+        g.add(eye);
+      }
+      y += h;
+    }
+    const top = this._box(0.9, 0.1, 0.25, this.mat.totemA); top.position.y = y + 0.05; g.add(top);
     return g;
   }
 
@@ -398,28 +586,43 @@ export class World {
     parent.add(g); return g;
   }
 
-  // Pterodactyl-style flying creature (thematic with the Rex)
+  // Pterodactyl-style flying creature — light pastel palette, varied per instance
   _bird(x, z, parent) {
+    const palettes = [
+      { body: 0xfff2a8, memb: 0xffd65a, beak: 0xff9a4a },
+      { body: 0xffc8d8, memb: 0xff7fb0, beak: 0xd84a7a },
+      { body: 0xc8e8ff, memb: 0x7fc8ff, beak: 0x4a9ae0 },
+      { body: 0xd8f4c8, memb: 0x8fe28a, beak: 0x4aa050 },
+      { body: 0xe8d8ff, memb: 0xc89aff, beak: 0x8a5bff },
+      { body: 0xffe0c8, memb: 0xff9a7a, beak: 0xd85a3a },
+    ];
+    const P = palettes[(Math.random() * palettes.length) | 0];
+    const bodyMat = new THREE.MeshStandardMaterial({ color: P.body, roughness: 0.6 });
+    const membMat = new THREE.MeshStandardMaterial({ color: P.memb, roughness: 0.8, side: THREE.DoubleSide });
+    const beakMat = new THREE.MeshStandardMaterial({ color: P.beak, roughness: 0.5 });
+
     const g = new THREE.Group();
-    const body = this._sph(0.28, this.mat.bird, 10); body.scale.z = 2.0; g.add(body);
-    const neck = this._cyl(0.07, 0.1, 0.3, this.mat.bird, 8); neck.position.set(0, 0.06, -0.35); neck.rotation.x = -1.0; g.add(neck);
-    const head = this._sph(0.17, this.mat.bird, 8); head.position.set(0, 0.18, -0.55); head.scale.z = 1.2; g.add(head);
-    const crest = this._box(0.05, 0.22, 0.22, this.mat.bird); crest.position.set(0, 0.35, -0.5); crest.rotation.x = -0.4; g.add(crest);
-    const beak = this._cyl(0.02, 0.06, 0.45, this.mat.birdM, 6); beak.position.set(0, 0.12, -0.88); beak.rotation.x = Math.PI / 2; g.add(beak);
-    // Wings with two segments + membrane plane
+    const body  = this._sph(0.28, bodyMat, 10); body.scale.z = 2.0; g.add(body);
+    const neck  = this._cyl(0.07, 0.1, 0.3, bodyMat, 8); neck.position.set(0, 0.06, -0.35); neck.rotation.x = -1.0; g.add(neck);
+    const head  = this._sph(0.17, bodyMat, 8); head.position.set(0, 0.18, -0.55); head.scale.z = 1.2; g.add(head);
+    const crest = this._box(0.05, 0.22, 0.22, membMat); crest.position.set(0, 0.35, -0.5); crest.rotation.x = -0.4; g.add(crest);
+    const beak  = this._cyl(0.02, 0.06, 0.45, beakMat, 6); beak.position.set(0, 0.12, -0.88); beak.rotation.x = Math.PI / 2; g.add(beak);
+    for (const sx of [-0.09, 0.09]) {
+      const eye = this._sph(0.04, this.mat.dark, 6); eye.position.set(sx, 0.22, -0.62); g.add(eye);
+    }
     const wingL = new THREE.Group(); wingL.position.set(-0.2, 0.05, 0);
-    const wingLBone = this._box(0.9, 0.05, 0.4, this.mat.bird); wingLBone.position.x = -0.45; wingL.add(wingLBone);
+    const wingLBone = this._box(0.9, 0.05, 0.4, bodyMat); wingLBone.position.x = -0.45; wingL.add(wingLBone);
     const wingLOuter = new THREE.Group(); wingLOuter.position.x = -0.9;
-    const membraneL = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.7), this.mat.birdM);
+    const membraneL = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.7), membMat);
     membraneL.rotation.x = -Math.PI / 2; membraneL.position.set(-0.55, 0, 0.05);
     wingLOuter.add(membraneL);
     wingL.add(wingLOuter);
     g.add(wingL);
     const wingR = wingL.clone(); wingR.position.x = 0.2; wingR.scale.x = -1; g.add(wingR);
-    const tail = this._cyl(0.02, 0.08, 0.5, this.mat.bird, 6); tail.position.set(0, 0, 0.45); tail.rotation.x = Math.PI / 2; g.add(tail);
+    const tail = this._cyl(0.02, 0.08, 0.5, bodyMat, 6); tail.position.set(0, 0, 0.45); tail.rotation.x = Math.PI / 2; g.add(tail);
 
     g.position.set(x, 1.9, z);
-    g.userData.kind = 'bird';
+    g.userData.kind  = 'bird';
     g.userData.wings = [wingL, wingR];
     g.userData.phase = Math.random() * Math.PI * 2;
     g.userData.aabb  = { w: 1.6, h: 0.6, d: 0.8, yOff: 1.9 };
@@ -489,6 +692,8 @@ export class World {
       } else if (a.userData._flame) {
         const s = 1 + Math.sin(now * 8 + a.userData._flame.phase) * 0.15 + Math.sin(now * 19) * 0.08;
         a.scale.set(s, s * 1.4, s);
+      } else if (a.userData._spin) {
+        a.rotation.z += dt * a.userData._spin;
       }
     }
   }
