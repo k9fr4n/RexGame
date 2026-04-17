@@ -47,9 +47,31 @@ export class World {
     for (let i = 0; i < BEHIND + AHEAD; i++) this._spawnChunk(CHUNK * BEHIND - i * CHUNK);
   }
 
+  // Difficulty curve based on the distance at which the player will reach
+  // this chunk. Returns { obstacleProb, eggProb, skipObstacles }.
+  //   reachDist < GRACE_DIST  -> no obstacles at all (grace period)
+  //   GRACE_DIST..RAMP_END    -> smoothstep ramp from 0 to max
+  //   > RAMP_END              -> steady max density
+  _difficultyFor(reachDist) {
+    const GRACE_DIST = 150;   // first ~150m are totally clear
+    const RAMP_END   = 1200;  // reach max density around here
+    const MAX_OBST   = 0.55;  // original max per-lane probability
+    const t = Math.max(0, Math.min(1, (reachDist - GRACE_DIST) / (RAMP_END - GRACE_DIST)));
+    const eased = t * t * (3 - 2 * t); // smoothstep for a gentle ramp
+    return {
+      obstacleProb: MAX_OBST * eased,
+      eggProb: 0.28 + 0.12 * eased,
+      skipObstacles: reachDist < GRACE_DIST,
+    };
+  }
+
   _spawnChunk(z) {
     const g = new THREE.Group();
     g.position.z = z;
+
+    // Distance at which the player reaches this chunk (root.z == travelled).
+    const reachDist = -z;
+    const diff = this._difficultyFor(reachDist);
 
     // Ground
     const ground = new THREE.Mesh(this.geoGround, this.matGround);
@@ -105,27 +127,26 @@ export class World {
       }
     }
 
-    // Obstacles & pickups on lanes
+    // Obstacles & pickups on lanes — density driven by `diff`
     const obstacles = [];
     const pickups = [];
-    // Avoid placing anything too close to chunk boundaries
     const slotsZ = [];
     for (let s = -CHUNK / 2 + 6; s < CHUNK / 2 - 6; s += 6) slotsZ.push(s);
-    // Never block all 3 lanes at the same z
     for (const sz of slotsZ) {
       const openLane = Math.floor(Math.random() * 3);
       for (let li = 0; li < 3; li++) {
         if (li === openLane) {
-          // Maybe spawn a pickup in the open lane
-          if (Math.random() < 0.35) pickups.push(this._egg(LANES[li], sz, g));
+          // Pickups allowed even in grace zone (early reward).
+          if (Math.random() < diff.eggProb) pickups.push(this._egg(LANES[li], sz, g));
           continue;
         }
-        if (Math.random() < 0.55) {
+        if (diff.skipObstacles) continue;
+        if (Math.random() < diff.obstacleProb) {
           const kind = Math.random();
           let ob;
-          if (kind < 0.4) ob = this._barrier(LANES[li], sz, g);         // duck under? no → jump over (low barrier)
-          else if (kind < 0.75) ob = this._train(LANES[li], sz, g);     // must change lane
-          else ob = this._bird(LANES[li], sz, g);                        // must slide
+          if (kind < 0.4)       ob = this._barrier(LANES[li], sz, g);  // jump
+          else if (kind < 0.75) ob = this._train  (LANES[li], sz, g);  // change lane
+          else                  ob = this._bird   (LANES[li], sz, g);  // slide
           obstacles.push(ob);
         }
       }
