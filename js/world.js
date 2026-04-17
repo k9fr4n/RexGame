@@ -34,6 +34,7 @@ export class World {
 
     this.chunks = [];     // {z, group, obstacles:[], pickups:[], props:[]}
     this.travelled = 0;
+    this._lastOpenLane = 1; // rolling constraint for a guaranteed path
 
     // Chunks span: z = +CHUNK*BEHIND (behind player) down to -(CHUNK*AHEAD) (ahead, -Z).
     for (let i = 0; i < BEHIND + AHEAD; i++) this._spawnChunk(CHUNK * BEHIND - i * CHUNK);
@@ -43,6 +44,7 @@ export class World {
     for (const c of this.chunks) this.root.remove(c.group);
     this.chunks = [];
     this.travelled = 0;
+    this._lastOpenLane = 1;
     this.root.position.z = 0;
     for (let i = 0; i < BEHIND + AHEAD; i++) this._spawnChunk(CHUNK * BEHIND - i * CHUNK);
   }
@@ -133,7 +135,10 @@ export class World {
     const slotsZ = [];
     for (let s = -CHUNK / 2 + 6; s < CHUNK / 2 - 6; s += 6) slotsZ.push(s);
     for (const sz of slotsZ) {
-      const openLane = Math.floor(Math.random() * 3);
+      // Drift-limited open lane: ±1 from previous slot so a path is always reachable.
+      const drift = Math.floor(Math.random() * 3) - 1; // -1 | 0 | +1
+      const openLane = Math.max(0, Math.min(2, this._lastOpenLane + drift));
+      this._lastOpenLane = openLane;
       for (let li = 0; li < 3; li++) {
         if (li === openLane) {
           // Pickups allowed even in grace zone (early reward).

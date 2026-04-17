@@ -217,8 +217,9 @@ function tick() {
   let dt = Math.min(clock.getDelta(), 1 / 30);
 
   if (state.phase === 'playing') {
-    // Difficulty ramp
-    state.speed = Math.min(55, state.speed + dt * 0.35);
+    // Speed ramp: grows with distance travelled. Gentle early, steady late.
+    // speed(m) = 18 + travelled * 0.015, capped at 80 units/s.
+    state.speed = Math.min(80, 18 + world.travelled * 0.015);
 
     world.update(dt, state.speed, camera.position.z);
     player.update(dt, state.speed);
