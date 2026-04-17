@@ -41,7 +41,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 // ---------- Scene ----------
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x07101c);
-scene.fog = new THREE.Fog(0x07101c, 40, 180);
+scene.fog = new THREE.Fog(0x07101c, 80, 380); // near/far tuned for distant mountain horizon
 
 // ---------- Camera ----------
 const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 400);

@@ -13,36 +13,42 @@ export class World {
   constructor(scene) {
     this.scene = scene;
     this.root  = new THREE.Group(); scene.add(this.root);
+    // Distant mountain ranges are static in scene space (player stays at origin).
 
     // ---- Material palette (shared across instances) ----
+    // Warm, saturated desert palette -> readable day and night.
     this.mat = {
-      ground : new THREE.MeshStandardMaterial({ color: 0x1a2030, roughness: 0.95 }),
-      stripe : new THREE.MeshStandardMaterial({ color: 0xffd86b, roughness: 0.6, emissive: 0x3a2a00, emissiveIntensity: 0.4 }),
-      rail   : new THREE.MeshStandardMaterial({ color: 0x88a0b8, roughness: 0.3, metalness: 0.8 }),
-      rock   : new THREE.MeshStandardMaterial({ color: 0x3a3230, roughness: 1.0 }),
-      cactus : new THREE.MeshStandardMaterial({ color: 0x2e7d4f, roughness: 0.7 }),
-      bark   : new THREE.MeshStandardMaterial({ color: 0x3a2618, roughness: 0.95 }),
-      tumble : new THREE.MeshStandardMaterial({ color: 0x8a6a2a, roughness: 1.0, flatShading: true }),
-      bone   : new THREE.MeshStandardMaterial({ color: 0xe8e1cc, roughness: 0.6 }),
-      coyote : new THREE.MeshStandardMaterial({ color: 0x8a6a3f, roughness: 0.8 }),
-      coyoteL: new THREE.MeshStandardMaterial({ color: 0xd8b880, roughness: 0.8 }),
-      roadrn : new THREE.MeshStandardMaterial({ color: 0x5a6a3a, roughness: 0.7 }),
-      roadrnB: new THREE.MeshStandardMaterial({ color: 0xe6d6a3, roughness: 0.7 }),
-      horse  : new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.75 }),
-      horseM : new THREE.MeshStandardMaterial({ color: 0x201410, roughness: 0.9 }),
-      wood   : new THREE.MeshStandardMaterial({ color: 0x6b4a2a, roughness: 0.85 }),
-      paper  : new THREE.MeshStandardMaterial({ color: 0xe0c27a, roughness: 0.85 }),
-      flame  : new THREE.MeshStandardMaterial({ color: 0xffb247, emissive: 0xff7a1a, emissiveIntensity: 2.2, roughness: 0.3 }),
-      train  : new THREE.MeshStandardMaterial({ color: 0xff3e7f, roughness: 0.3, metalness: 0.5, emissive: 0x5a0020, emissiveIntensity: 0.35 }),
-      barrier: new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.5, emissive: 0x552200, emissiveIntensity: 0.5 }),
-      dark   : new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 }),
-      neon   : new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.5 }),
-      bird   : new THREE.MeshStandardMaterial({ color: 0x6a5a48, roughness: 0.7 }),
-      birdM  : new THREE.MeshStandardMaterial({ color: 0x3a2a1c, roughness: 0.9, side: THREE.DoubleSide }),
-      egg    : new THREE.MeshStandardMaterial({ color: 0xfff4b6, roughness: 0.25, metalness: 0.1, emissive: 0xffd86b, emissiveIntensity: 0.8 }),
-      eggHalo: new THREE.MeshBasicMaterial({ color: 0xffd86b, transparent: true, opacity: 0.35, side: THREE.DoubleSide }),
-      build  : new THREE.MeshStandardMaterial({ color: 0x0e1526, roughness: 0.8, metalness: 0.1 }),
-      window : new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.4, roughness: 0.4 }),
+      ground : new THREE.MeshStandardMaterial({ color: 0xc68548, roughness: 0.95 }),                                                  // warm sand
+      stripe : new THREE.MeshStandardMaterial({ color: 0xffe27a, roughness: 0.5, emissive: 0x5a4200, emissiveIntensity: 0.6 }),        // bright yellow stripe
+      rail   : new THREE.MeshStandardMaterial({ color: 0xd8c9a0, roughness: 0.4, metalness: 0.6 }),                                   // polished bronze
+      rock   : new THREE.MeshStandardMaterial({ color: 0xa06848, roughness: 1.0 }),                                                   // red-rock canyon
+      cactus : new THREE.MeshStandardMaterial({ color: 0x4fbf5a, roughness: 0.65, emissive: 0x0a3514, emissiveIntensity: 0.25 }),      // vivid green
+      bark   : new THREE.MeshStandardMaterial({ color: 0x8a5a2a, roughness: 0.9 }),                                                   // warm bark
+      tumble : new THREE.MeshStandardMaterial({ color: 0xd8a84a, roughness: 1.0, flatShading: true }),                                 // golden straw
+      bone   : new THREE.MeshStandardMaterial({ color: 0xfaf2d4, roughness: 0.55, emissive: 0x2a2418, emissiveIntensity: 0.15 }),      // bright bone
+      coyote : new THREE.MeshStandardMaterial({ color: 0xd88a3a, roughness: 0.75 }),                                                  // fiery tan
+      coyoteL: new THREE.MeshStandardMaterial({ color: 0xffdc9a, roughness: 0.75 }),                                                  // cream belly
+      roadrn : new THREE.MeshStandardMaterial({ color: 0x8acb52, roughness: 0.65 }),                                                  // lime plumage
+      roadrnB: new THREE.MeshStandardMaterial({ color: 0xffc05c, roughness: 0.65 }),                                                  // orange beak/legs
+      horse  : new THREE.MeshStandardMaterial({ color: 0xb8532a, roughness: 0.7 }),                                                   // chestnut bay
+      horseM : new THREE.MeshStandardMaterial({ color: 0x221410, roughness: 0.9 }),                                                   // black mane
+      wood   : new THREE.MeshStandardMaterial({ color: 0xaa6a38, roughness: 0.8 }),                                                   // lighter wood
+      paper  : new THREE.MeshStandardMaterial({ color: 0xfae4a0, roughness: 0.85 }),                                                  // cream sign
+      flame  : new THREE.MeshStandardMaterial({ color: 0xffb247, emissive: 0xff7a1a, emissiveIntensity: 2.4, roughness: 0.3 }),
+      train  : new THREE.MeshStandardMaterial({ color: 0xff4f8a, roughness: 0.3, metalness: 0.5, emissive: 0x6a0028, emissiveIntensity: 0.5 }),
+      barrier: new THREE.MeshStandardMaterial({ color: 0xffbf2a, roughness: 0.45, emissive: 0x6a3a00, emissiveIntensity: 0.65 }),
+      dark   : new THREE.MeshStandardMaterial({ color: 0x2a1a14, roughness: 0.8 }),
+      neon   : new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.8 }),
+      bird   : new THREE.MeshStandardMaterial({ color: 0xb08a5a, roughness: 0.65 }),                                                  // warm pterodactyl
+      birdM  : new THREE.MeshStandardMaterial({ color: 0x6a3a1a, roughness: 0.85, side: THREE.DoubleSide }),                           // tan membrane
+      egg    : new THREE.MeshStandardMaterial({ color: 0xfff8c0, roughness: 0.22, metalness: 0.15, emissive: 0xffd86b, emissiveIntensity: 1.1 }),
+      eggHalo: new THREE.MeshBasicMaterial({ color: 0xffd86b, transparent: true, opacity: 0.4, side: THREE.DoubleSide }),
+      build  : new THREE.MeshStandardMaterial({ color: 0x2a2458, roughness: 0.75, metalness: 0.15 }),                                 // indigo building
+      window : new THREE.MeshStandardMaterial({ color: 0xffcc3a, emissive: 0xffcc3a, emissiveIntensity: 1.5, roughness: 0.4 }),       // golden windows
+      // Distant mountain layers (fog-tinted automatically)
+      mtFar  : new THREE.MeshStandardMaterial({ color: 0x6a4a7a, roughness: 1.0, flatShading: true }),                                // violet far
+      mtMid  : new THREE.MeshStandardMaterial({ color: 0x8a5040, roughness: 1.0, flatShading: true }),                                // red canyon mid
+      mtNear : new THREE.MeshStandardMaterial({ color: 0xb8704a, roughness: 1.0, flatShading: true }),                                // warm near hills
     };
 
     // Shared static geometries
@@ -58,6 +64,7 @@ export class World {
     this._lastOpenLane = 1;
     this._anim        = []; // tumbleweeds rolling + flames flickering
     for (let i = 0; i < BEHIND + AHEAD; i++) this._spawnChunk(CHUNK * BEHIND - i * CHUNK);
+    this.mountains = this._buildMountains(scene);
   }
 
   reset() {
@@ -80,6 +87,49 @@ export class World {
       eggProb: 0.28 + 0.12 * eased,
       skipObstacles: reachDist < GRACE_DIST,
     };
+  }
+
+  // ---- Background mountains (static horizon, fog-tinted) -------------
+  _buildMountains(scene) {
+    const layers = [
+      { z: -260, count: 46, minH: 34, maxH: 78, spread: 260, mat: this.mat.mtFar  },
+      { z: -190, count: 38, minH: 20, maxH: 50, spread: 230, mat: this.mat.mtMid  },
+      { z: -130, count: 32, minH: 10, maxH: 28, spread: 210, mat: this.mat.mtNear },
+    ];
+    const root = new THREE.Group();
+    for (const L of layers) {
+      for (let i = 0; i < L.count; i++) {
+        const h = L.minH + Math.random() * (L.maxH - L.minH);
+        const r = h * (0.55 + Math.random() * 0.3);
+        const seg = 5 + Math.floor(Math.random() * 3);
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, seg), L.mat);
+        const side = Math.random() < 0.5 ? -1 : 1;
+        // Clear a corridor in front of the player so mountains don't cover the track.
+        const xMin = 22;
+        cone.position.set(
+          side * (xMin + Math.random() * L.spread),
+          h / 2 - 2,
+          L.z + (Math.random() - 0.5) * 14
+        );
+        cone.rotation.y = Math.random() * Math.PI;
+        cone.scale.x = 0.9 + Math.random() * 0.5;
+        cone.scale.z = 0.9 + Math.random() * 0.5;
+        cone.receiveShadow = false; cone.castShadow = false; // too far to matter
+        root.add(cone);
+      }
+    }
+    // Also a central far ridge behind the mountains, spanning the corridor,
+    // so the horizon is never a flat gap even if the corridor is wide.
+    for (let i = 0; i < 18; i++) {
+      const h = 40 + Math.random() * 40;
+      const r = h * 0.7;
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 5), this.mat.mtFar);
+      cone.position.set((Math.random() - 0.5) * 60, h / 2 - 2, -320 + Math.random() * 20);
+      cone.rotation.y = Math.random() * Math.PI;
+      root.add(cone);
+    }
+    scene.add(root);
+    return root;
   }
 
   // ---- Chunk spawning -------------------------------------------------
