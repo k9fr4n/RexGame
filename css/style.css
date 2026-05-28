@@ -6,11 +6,13 @@
   --panel:rgba(10,16,28,.55);
   --panel-b:rgba(125,249,255,.25);
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body,#app{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ui);font-family:"Segoe UI",Inter,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body,#app{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ui);font-family:"Segoe UI",Inter,system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;overscroll-behavior:none}
+/* iOS Safari: 100% leaves a gap when the URL bar collapses. dvh tracks the actual viewport. */
+@supports (height: 100dvh){ html,body,#app{height:100dvh} }
 canvas#game{position:absolute;inset:0;width:100%;height:100%;display:block}
 
-.hud{position:absolute;inset:0;pointer-events:none;padding:18px;display:flex;flex-direction:column;justify-content:space-between}
+.hud{position:absolute;inset:0;pointer-events:none;padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));display:flex;flex-direction:column;justify-content:space-between}
 .hud-row{display:flex;gap:12px;justify-content:center}
 .hud-row.top{justify-content:space-between}
 .panel{background:var(--panel);border:1px solid var(--panel-b);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:8px 14px;border-radius:12px;min-width:96px;text-align:center;box-shadow:0 4px 22px rgba(0,0,0,.35), inset 0 0 20px rgba(125,249,255,.06)}
@@ -42,10 +44,13 @@ kbd{background:#111a2d;border:1px solid #1f3352;padding:3px 8px;border-radius:6p
 .stats{display:flex;gap:26px;font-size:14px;letter-spacing:2px;opacity:.9}
 .stats b{display:block;font-size:28px;color:var(--accent);text-shadow:0 0 12px rgba(125,249,255,.55)}
 
-.touch{position:absolute;inset:0;display:none;z-index:5}
-.tz{position:absolute;background:transparent}
-.tz-left{left:0;top:0;width:35%;height:100%}
-.tz-right{right:0;top:0;width:35%;height:100%}
+/* Touch layer: container is pass-through so swipes reach the canvas.
+   Individual tap zones still pick up taps via their own listeners (which
+   distinguish a tap from a swipe by movement threshold in input.js). */
+.touch{position:absolute;inset:0;display:none;z-index:5;pointer-events:none}
+.tz{position:absolute;background:transparent;pointer-events:auto}
+.tz-left{left:0;top:15%;width:35%;height:70%}
+.tz-right{right:0;top:15%;width:35%;height:70%}
 .tz-up{left:35%;top:0;width:30%;height:50%}
 .tz-down{left:35%;bottom:0;width:30%;height:50%}
 @media (hover:none) and (pointer:coarse){ .touch{display:block} .controls{display:none} }
