@@ -40,8 +40,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // ---------- Scene ----------
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07101c);
-scene.fog = new THREE.Fog(0x07101c, 80, 380); // near/far tuned for distant mountain horizon
+scene.background = new THREE.Color(0xf4c89a);  // ciel sunset pêche
+scene.fog = new THREE.Fog(0xf4b890, 90, 360);   // brume chaude western
 
 // ---------- Camera ----------
 const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 400);
@@ -49,11 +49,11 @@ camera.position.set(0, 5.2, 9.5);
 camera.lookAt(0, 1.4, 0);
 
 // ---------- Lights ----------
-const hemi = new THREE.HemisphereLight(0x88aaff, 0x221a1a, 0.55);
+const hemi = new THREE.HemisphereLight(0xffd9a8, 0x4a2a1a, 0.75);  // ciel chaud / sol terreux
 scene.add(hemi);
 
-const sun = new THREE.DirectionalLight(0xfff1d6, 1.25);
-sun.position.set(12, 22, 10);
+const sun = new THREE.DirectionalLight(0xffd07a, 1.6);              // soleil bas sunset orangé
+sun.position.set(18, 14, -8);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 sun.shadow.camera.near = 1;
@@ -64,8 +64,8 @@ sun.shadow.bias = -0.0005;
 scene.add(sun);
 scene.add(sun.target);
 
-const rim = new THREE.DirectionalLight(0x7df9ff, 0.6);
-rim.position.set(-10, 6, -12);
+const rim = new THREE.DirectionalLight(0xff8a4a, 0.5);              // contre-jour orangé
+rim.position.set(-14, 4, -14);
 scene.add(rim);
 
 // Starfield (skydome speckle) — kept at module scope for day/night blending
@@ -215,14 +215,15 @@ function gameOver() {
 // ---------- Day / Night cycle --------------------------------------------
 // Cycle length in meters. speed ~30 -> ~27s per full day/night cycle.
 const DAY_CYCLE_M = 900;
+// Palette western sunset : journée pêche chaude, nuit profonde indigo
 const _col = {
-  skyDay   : new THREE.Color(0x8ab8dc),
-  skyNight : new THREE.Color(0x060a18),
-  skyDusk  : new THREE.Color(0xe07a4a),
-  sunNoon  : new THREE.Color(0xfff1d6),
-  sunWarm  : new THREE.Color(0xff9554),
-  hemiDay  : new THREE.Color(0x88b4d8),
-  hemiNight: new THREE.Color(0x1a1f3a),
+  skyDay   : new THREE.Color(0xf6cca0),   // ciel sunset jour (peach)
+  skyNight : new THREE.Color(0x0d1430),   // nuit étoilée profonde
+  skyDusk  : new THREE.Color(0xf07a3a),   // bande horizon orange
+  sunNoon  : new THREE.Color(0xfff0c4),   // pâle chaud
+  sunWarm  : new THREE.Color(0xff7a3a),   // couchant
+  hemiDay  : new THREE.Color(0xffd9a8),
+  hemiNight: new THREE.Color(0x2a2440),
   tmp      : new THREE.Color(),
   tmp2     : new THREE.Color(),
 };

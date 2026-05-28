@@ -18,10 +18,11 @@ export class World {
     // ---- Material palette (shared across instances) ----
     // Warm, saturated desert palette -> readable day and night.
     this.mat = {
-      ground : new THREE.MeshStandardMaterial({ color: 0xc68548, roughness: 0.95 }),                                                  // warm sand
-      stripe : new THREE.MeshStandardMaterial({ color: 0xffe27a, roughness: 0.5, emissive: 0x5a4200, emissiveIntensity: 0.6 }),        // bright yellow stripe
-      rail   : new THREE.MeshStandardMaterial({ color: 0xd8c9a0, roughness: 0.4, metalness: 0.6 }),                                   // polished bronze
-      rock   : new THREE.MeshStandardMaterial({ color: 0xa06848, roughness: 1.0 }),                                                   // red-rock canyon
+      ground : new THREE.MeshStandardMaterial({ color: 0xd9a06a, roughness: 1.0 }),                                                   // sable chaud sunset
+      stripe : new THREE.MeshStandardMaterial({ color: 0x8a4a22, roughness: 0.9 }),                                                   // traverses bois sombre
+      rail   : new THREE.MeshStandardMaterial({ color: 0x6a5a4a, roughness: 0.35, metalness: 0.85 }),                                 // acier patiné
+      sleeper: new THREE.MeshStandardMaterial({ color: 0x7a4a26, roughness: 0.95 }),                                                  // bois traverses
+      rock   : new THREE.MeshStandardMaterial({ color: 0xc48050, roughness: 1.0 }),                                                   // grès rouge
       cactus : new THREE.MeshStandardMaterial({ color: 0x4fbf5a, roughness: 0.65, emissive: 0x0a3514, emissiveIntensity: 0.25 }),      // vivid green
       bark   : new THREE.MeshStandardMaterial({ color: 0x8a5a2a, roughness: 0.9 }),                                                   // warm bark
       tumble : new THREE.MeshStandardMaterial({ color: 0xd8a84a, roughness: 1.0, flatShading: true }),                                 // golden straw
@@ -35,14 +36,20 @@ export class World {
       wood   : new THREE.MeshStandardMaterial({ color: 0xaa6a38, roughness: 0.8 }),                                                   // lighter wood
       paper  : new THREE.MeshStandardMaterial({ color: 0xfae4a0, roughness: 0.85 }),                                                  // cream sign
       flame  : new THREE.MeshStandardMaterial({ color: 0xffb247, emissive: 0xff7a1a, emissiveIntensity: 2.4, roughness: 0.3 }),
-      train  : new THREE.MeshStandardMaterial({ color: 0xff4f8a, roughness: 0.3, metalness: 0.5, emissive: 0x6a0028, emissiveIntensity: 0.5 }),
-      barrier: new THREE.MeshStandardMaterial({ color: 0xffbf2a, roughness: 0.45, emissive: 0x6a3a00, emissiveIntensity: 0.65 }),
+      train  : new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.45, metalness: 0.5 }),                                  // loco noire
+      trainR : new THREE.MeshStandardMaterial({ color: 0xb83820, roughness: 0.55 }),                                                  // détails rouges
+      trainG : new THREE.MeshStandardMaterial({ color: 0xd8a040, roughness: 0.35, metalness: 0.7 }),                                  // laiton
+      smoke  : new THREE.MeshStandardMaterial({ color: 0xe8e0d4, roughness: 0.9, transparent: true, opacity: 0.85 }),
+      barrier: new THREE.MeshStandardMaterial({ color: 0xc0521a, roughness: 0.7 }),                                                   // tonneau bois
       dark   : new THREE.MeshStandardMaterial({ color: 0x2a1a14, roughness: 0.8 }),
       neon   : new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.8 }),
       bird   : new THREE.MeshStandardMaterial({ color: 0xb08a5a, roughness: 0.65 }),                                                  // warm pterodactyl
       birdM  : new THREE.MeshStandardMaterial({ color: 0x6a3a1a, roughness: 0.85, side: THREE.DoubleSide }),                           // tan membrane
-      egg    : new THREE.MeshStandardMaterial({ color: 0xfff8c0, roughness: 0.22, metalness: 0.15, emissive: 0xffd86b, emissiveIntensity: 1.1 }),
-      eggHalo: new THREE.MeshBasicMaterial({ color: 0xffd86b, transparent: true, opacity: 0.4, side: THREE.DoubleSide }),
+      // Pièces dorées à couronne (ex-"egg" — l'API garde le kind 'egg')
+      egg    : new THREE.MeshStandardMaterial({ color: 0xffcd3a, roughness: 0.3, metalness: 0.85, emissive: 0xc07820, emissiveIntensity: 0.5 }),  // or
+      eggRim : new THREE.MeshStandardMaterial({ color: 0xb87a10, roughness: 0.45, metalness: 0.85 }),                                            // tranche cuivrée
+      eggBlue: new THREE.MeshStandardMaterial({ color: 0x4fb0e8, roughness: 0.3, metalness: 0.8, emissive: 0x1a4868, emissiveIntensity: 0.5 }),   // variante bleue
+      eggHalo: new THREE.MeshBasicMaterial({ color: 0xffd86b, transparent: true, opacity: 0.35, side: THREE.DoubleSide }),
       // (build/window now live in this.buildPalette / this.windowPalette below)
       petalA : new THREE.MeshStandardMaterial({ color: 0xff5a8a, roughness: 0.5, emissive: 0x5a1030, emissiveIntensity: 0.2 }),
       petalB : new THREE.MeshStandardMaterial({ color: 0xa25bff, roughness: 0.5, emissive: 0x2a0a5a, emissiveIntensity: 0.2 }),
@@ -60,10 +67,10 @@ export class World {
       totemA : new THREE.MeshStandardMaterial({ color: 0xe06a3a, roughness: 0.85 }),
       totemB : new THREE.MeshStandardMaterial({ color: 0x4fd6a0, roughness: 0.85 }),
       totemC : new THREE.MeshStandardMaterial({ color: 0xffd65a, roughness: 0.85 }),
-      // Distant mountain layers (fog-tinted automatically)
-      mtFar  : new THREE.MeshStandardMaterial({ color: 0x6a4a7a, roughness: 1.0, flatShading: true }),                                // violet far
-      mtMid  : new THREE.MeshStandardMaterial({ color: 0x8a5040, roughness: 1.0, flatShading: true }),                                // red canyon mid
-      mtNear : new THREE.MeshStandardMaterial({ color: 0xb8704a, roughness: 1.0, flatShading: true }),                                // warm near hills
+      // Mesas / buttes en grès rouge (du plus lointain au plus proche)
+      mtFar  : new THREE.MeshStandardMaterial({ color: 0xa86a4a, roughness: 1.0, flatShading: true }),                                // mesa lointaine rosée
+      mtMid  : new THREE.MeshStandardMaterial({ color: 0xc07848, roughness: 1.0, flatShading: true }),                                // mesa milieu
+      mtNear : new THREE.MeshStandardMaterial({ color: 0xd88a4a, roughness: 1.0, flatShading: true }),                                // butte proche
     };
 
     // Shared static geometries
@@ -73,20 +80,20 @@ export class World {
 
     // Exposed material for external day/night control
     // Building + window palettes (per-instance random pick for colorful skyline)
+    // Palette western : bois patiné + adobe + grès clair (plus de néon)
     this.buildPalette = [
-      new THREE.MeshStandardMaterial({ color: 0x8a4aff, roughness: 0.55, metalness: 0.2 }),
-      new THREE.MeshStandardMaterial({ color: 0x4aa0ff, roughness: 0.55, metalness: 0.2 }),
-      new THREE.MeshStandardMaterial({ color: 0xff6a8a, roughness: 0.55, metalness: 0.2 }),
-      new THREE.MeshStandardMaterial({ color: 0x4fd6a0, roughness: 0.55, metalness: 0.2 }),
-      new THREE.MeshStandardMaterial({ color: 0xffb23a, roughness: 0.55, metalness: 0.2 }),
-      new THREE.MeshStandardMaterial({ color: 0xd75aff, roughness: 0.55, metalness: 0.2 }),
+      new THREE.MeshStandardMaterial({ color: 0xa56a3a, roughness: 0.85 }),  // bois clair
+      new THREE.MeshStandardMaterial({ color: 0x884a26, roughness: 0.9 }),   // bois sombre
+      new THREE.MeshStandardMaterial({ color: 0xc89060, roughness: 0.85 }),  // adobe pâle
+      new THREE.MeshStandardMaterial({ color: 0xd8a060, roughness: 0.85 }),  // grès doré
+      new THREE.MeshStandardMaterial({ color: 0x9c5a30, roughness: 0.9 }),   // terre brûlée
+      new THREE.MeshStandardMaterial({ color: 0xb88050, roughness: 0.85 }),  // sable
     ];
+    // Fenêtres : ambre chaud (lampe à huile la nuit, vitre claire le jour)
     this.windowPalette = [
-      new THREE.MeshStandardMaterial({ color: 0xffd65a, emissive: 0xffd65a, emissiveIntensity: 1.5, roughness: 0.4 }),
-      new THREE.MeshStandardMaterial({ color: 0x7df9ff, emissive: 0x7df9ff, emissiveIntensity: 1.5, roughness: 0.4 }),
-      new THREE.MeshStandardMaterial({ color: 0xff5aff, emissive: 0xff5aff, emissiveIntensity: 1.5, roughness: 0.4 }),
-      new THREE.MeshStandardMaterial({ color: 0xaaff5a, emissive: 0xaaff5a, emissiveIntensity: 1.5, roughness: 0.4 }),
-      new THREE.MeshStandardMaterial({ color: 0xff9a4a, emissive: 0xff9a4a, emissiveIntensity: 1.5, roughness: 0.4 }),
+      new THREE.MeshStandardMaterial({ color: 0xffd07a, emissive: 0xffae40, emissiveIntensity: 0.9, roughness: 0.5 }),
+      new THREE.MeshStandardMaterial({ color: 0xffbf5a, emissive: 0xff8a30, emissiveIntensity: 1.0, roughness: 0.5 }),
+      new THREE.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffcf6a, emissiveIntensity: 0.8, roughness: 0.5 }),
     ];
     // winMat retained for day/night scaling hook (uses the gold one)
     this.winMat = this.windowPalette[0];
@@ -121,44 +128,55 @@ export class World {
     };
   }
 
-  // ---- Background mountains (static horizon, fog-tinted) -------------
+  // ---- Background MESAS (plateaux western sunset, sommet plat) ---------
   _buildMountains(scene) {
     const layers = [
-      { z: -260, count: 46, minH: 34, maxH: 78, spread: 260, mat: this.mat.mtFar  },
-      { z: -190, count: 38, minH: 20, maxH: 50, spread: 230, mat: this.mat.mtMid  },
-      { z: -130, count: 32, minH: 10, maxH: 28, spread: 210, mat: this.mat.mtNear },
+      { z: -260, count: 28, minH: 28, maxH: 58, spread: 240, mat: this.mat.mtFar  },
+      { z: -190, count: 22, minH: 16, maxH: 38, spread: 220, mat: this.mat.mtMid  },
+      { z: -130, count: 18, minH:  8, maxH: 22, spread: 200, mat: this.mat.mtNear },
     ];
     const root = new THREE.Group();
+    // Une mesa = cylindre à 6-8 faces (sommet plat), parfois empilé d'un 2e étage plus étroit
+    const makeMesa = (h, baseR, mat) => {
+      const g = new THREE.Group();
+      const seg = 5 + Math.floor(Math.random() * 3);
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.85, baseR, h * 0.7, seg), mat);
+      lower.position.y = h * 0.35;
+      g.add(lower);
+      if (Math.random() < 0.6) {
+        const upperH = h * 0.35;
+        const upper = new THREE.Mesh(new THREE.CylinderGeometry(baseR * 0.55, baseR * 0.75, upperH, seg), mat);
+        upper.position.y = h * 0.7 + upperH / 2;
+        g.add(upper);
+      }
+      g.rotation.y = Math.random() * Math.PI * 2;
+      // léger squash pour casser le côté "tube"
+      g.scale.x = 0.9 + Math.random() * 0.5;
+      g.scale.z = 0.9 + Math.random() * 0.5;
+      return g;
+    };
     for (const L of layers) {
       for (let i = 0; i < L.count; i++) {
         const h = L.minH + Math.random() * (L.maxH - L.minH);
-        const r = h * (0.55 + Math.random() * 0.3);
-        const seg = 5 + Math.floor(Math.random() * 3);
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, seg), L.mat);
+        const r = h * (0.55 + Math.random() * 0.35);
         const side = Math.random() < 0.5 ? -1 : 1;
-        // Clear a corridor in front of the player so mountains don't cover the track.
         const xMin = 22;
-        cone.position.set(
+        const mesa = makeMesa(h, r, L.mat);
+        mesa.position.set(
           side * (xMin + Math.random() * L.spread),
-          h / 2 - 2,
+          -2,
           L.z + (Math.random() - 0.5) * 14
         );
-        cone.rotation.y = Math.random() * Math.PI;
-        cone.scale.x = 0.9 + Math.random() * 0.5;
-        cone.scale.z = 0.9 + Math.random() * 0.5;
-        cone.receiveShadow = false; cone.castShadow = false; // too far to matter
-        root.add(cone);
+        root.add(mesa);
       }
     }
-    // Also a central far ridge behind the mountains, spanning the corridor,
-    // so the horizon is never a flat gap even if the corridor is wide.
-    for (let i = 0; i < 18; i++) {
-      const h = 40 + Math.random() * 40;
+    // Crête centrale lointaine (boucher l'horizon dans le corridor)
+    for (let i = 0; i < 14; i++) {
+      const h = 36 + Math.random() * 36;
       const r = h * 0.7;
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 5), this.mat.mtFar);
-      cone.position.set((Math.random() - 0.5) * 60, h / 2 - 2, -320 + Math.random() * 20);
-      cone.rotation.y = Math.random() * Math.PI;
-      root.add(cone);
+      const mesa = makeMesa(h, r, this.mat.mtFar);
+      mesa.position.set((Math.random() - 0.5) * 60, -2, -320 + Math.random() * 20);
+      root.add(mesa);
     }
     scene.add(root);
     return root;
@@ -175,18 +193,22 @@ export class World {
     const ground = new THREE.Mesh(this.geoGround, this.mat.ground);
     ground.receiveShadow = true; ground.position.y = -0.2;
     g.add(ground);
-    // Lane stripes
-    for (const lx of [-1.3, 1.3]) {
-      for (let s = -CHUNK / 2 + 1; s < CHUNK / 2; s += 4) {
-        const st = new THREE.Mesh(this.geoStripe, this.mat.stripe);
-        st.position.set(lx, 0.01, s);
-        g.add(st);
-      }
+
+    // Traverses en bois (railroad ties) perpendiculaires à la voie, tous les 1.6m
+    const sleeperGeo = new THREE.BoxGeometry(11.5, 0.18, 0.55);
+    for (let s = -CHUNK / 2 + 0.8; s < CHUNK / 2; s += 1.6) {
+      const sl = new THREE.Mesh(sleeperGeo, this.mat.sleeper);
+      sl.position.set(0, 0.05, s);
+      sl.receiveShadow = true;
+      // Légère rotation aléatoire pour casser l'uniformité
+      sl.rotation.y = (Math.random() - 0.5) * 0.02;
+      g.add(sl);
     }
-    // Outer rails
-    for (const rx of [-4.2, 4.2]) {
+
+    // 4 rails d'acier (2 paires : voie gauche [-4.2, -1.3] + voie droite [1.3, 4.2])
+    for (const rx of [-4.2, -1.3, 1.3, 4.2]) {
       const rail = new THREE.Mesh(this.geoRail, this.mat.rail);
-      rail.position.set(rx, 0.3, 0); rail.castShadow = true;
+      rail.position.set(rx, 0.18, 0); rail.castShadow = true;
       g.add(rail);
     }
 
@@ -256,9 +278,92 @@ export class World {
   }
   _pickCityProp() {
     const r = Math.random();
-    if (r < 0.70) return this._building;
-    if (r < 0.90) return this._rock;
-    return this._saguaro;
+    if (r < 0.45) return this._saloon;        // saloon façade bois
+    if (r < 0.70) return this._waterTower;    // château d'eau
+    if (r < 0.85) return this._building;      // bâtiment générique western
+    if (r < 0.93) return this._wagon;
+    return this._rock;
+  }
+
+  // Façade type saloon : bâtiment en bois avec faux-pignon en façade
+  _saloon() {
+    const g = new THREE.Group();
+    const w = 3.5 + Math.random() * 1.5;
+    const d = 3.0 + Math.random() * 1.0;
+    const h = 3.2 + Math.random() * 1.2;
+    // Corps principal
+    const body = this._box(w, h, d, this.mat.wood); body.position.y = h / 2; g.add(body);
+    // Toit en pente (prisme via box rotated)
+    const roof = this._box(w * 1.05, 0.25, d * 1.05, this.mat.bark);
+    roof.position.y = h + 0.12;
+    g.add(roof);
+    // Faux pignon décoratif en façade (caractéristique western)
+    const pediment = this._box(w * 0.95, h * 0.35, 0.1, this.mat.paper);
+    pediment.position.set(0, h + 0.35, -d / 2 - 0.05);
+    g.add(pediment);
+    // Auvent au-dessus de la porte
+    const porchRoof = this._box(w * 0.9, 0.1, 0.9, this.mat.bark);
+    porchRoof.position.set(0, h * 0.55, -d / 2 - 0.5);
+    g.add(porchRoof);
+    // Poteaux du porche
+    for (const sx of [-w * 0.4, w * 0.4]) {
+      const post = this._cyl(0.07, 0.07, h * 0.55, this.mat.bark, 6);
+      post.position.set(sx, h * 0.275, -d / 2 - 0.85);
+      g.add(post);
+    }
+    // Porte sombre
+    const door = this._box(0.7, 1.3, 0.05, this.mat.dark);
+    door.position.set(0, 0.65, -d / 2 - 0.03);
+    g.add(door);
+    // Fenêtres carrées dorées
+    for (const sx of [-w * 0.3, w * 0.3]) {
+      const win = this._box(0.5, 0.5, 0.05, this.mat.lamp);
+      win.position.set(sx, h * 0.6, -d / 2 - 0.03);
+      g.add(win);
+    }
+    return g;
+  }
+
+  // Château d'eau (water tower) sur pilotis bois — emblématique du décor
+  _waterTower() {
+    const g = new THREE.Group();
+    const baseH = 3.0 + Math.random() * 0.6;
+    const tankR = 1.1 + Math.random() * 0.3;
+    const tankH = 1.6 + Math.random() * 0.3;
+    // 4 pilotis croisés
+    for (const [sx, sz] of [[-0.7,-0.7],[0.7,-0.7],[-0.7,0.7],[0.7,0.7]]) {
+      const leg = this._cyl(0.08, 0.1, baseH, this.mat.bark, 5);
+      leg.position.set(sx, baseH / 2, sz);
+      leg.rotation.x = sz > 0 ?  0.05 : -0.05;
+      leg.rotation.z = sx > 0 ? -0.05 :  0.05;
+      g.add(leg);
+    }
+    // Croisillons
+    for (let lvl = 1; lvl <= 2; lvl++) {
+      const y = lvl * baseH / 3;
+      const cross1 = this._box(2.0, 0.05, 0.05, this.mat.bark); cross1.position.y = y; g.add(cross1);
+      const cross2 = cross1.clone(); cross2.rotation.y = Math.PI / 2; g.add(cross2);
+    }
+    // Cuve cylindrique
+    const tank = this._cyl(tankR, tankR, tankH, this.mat.bark, 14);
+    tank.position.y = baseH + tankH / 2;
+    g.add(tank);
+    // Cerclages
+    for (const yy of [0.25, 0.75]) {
+      const hoop = new THREE.Mesh(new THREE.TorusGeometry(tankR + 0.03, 0.04, 6, 18), this.mat.dark);
+      hoop.rotation.x = Math.PI / 2;
+      hoop.position.y = baseH + yy * tankH;
+      g.add(hoop);
+    }
+    // Toit conique
+    const top = new THREE.Mesh(new THREE.ConeGeometry(tankR * 1.05, 0.7, 14), this.mat.bark);
+    top.position.y = baseH + tankH + 0.35;
+    g.add(top);
+    // Tuyau d'arrivée descendant
+    const spout = this._cyl(0.06, 0.06, baseH * 0.8, this.mat.metal, 6);
+    spout.position.set(tankR + 0.05, baseH * 0.5, 0);
+    g.add(spout);
+    return g;
   }
 
   // ---- Primitive helpers ---------------------------------------------
@@ -569,20 +674,87 @@ export class World {
   }
 
   // ---- Lane-aligned obstacles ----------------------------------------
+  // Tonneau en bois (saut)
   _barrier(x, z, parent) {
     const g = new THREE.Group();
-    const base = this._box(1.8, 0.9, 0.5, this.mat.barrier); base.position.y = 0.45; g.add(base);
-    const stripe = this._box(1.82, 0.15, 0.52, this.mat.dark); stripe.position.y = 0.45; g.add(stripe);
+    const body = this._cyl(0.6, 0.6, 1.0, this.mat.barrier, 14); body.position.y = 0.55; g.add(body);
+    // Cerclages métalliques
+    for (const y of [0.18, 0.55, 0.92]) {
+      const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.04, 6, 18), this.mat.dark);
+      hoop.rotation.x = Math.PI / 2; hoop.position.y = y; g.add(hoop);
+    }
+    // Lattes verticales (suggérées via boxes très fines)
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const slat = this._box(0.16, 0.95, 0.04, this.mat.barrier);
+      slat.position.set(Math.cos(a) * 0.61, 0.55, Math.sin(a) * 0.61);
+      slat.rotation.y = -a;
+      g.add(slat);
+    }
     g.position.set(x, 0, z);
-    g.userData.kind = 'barrier'; g.userData.aabb = { w: 1.8, h: 0.9, d: 0.5, yOff: 0 };
+    g.userData.kind = 'barrier'; g.userData.aabb = { w: 1.2, h: 1.0, d: 1.2, yOff: 0 };
     parent.add(g); return g;
   }
+
+  // Locomotive à vapeur (changer de voie). Garde kind='train' pour la game logic.
   _train(x, z, parent) {
     const g = new THREE.Group();
-    const body = this._box(2.1, 3.2, 7, this.mat.train); body.position.y = 1.6; g.add(body);
-    const glow = this._box(2.2, 0.3, 7.05, this.mat.neon); glow.position.y = 2.9; g.add(glow);
+    // Châssis (caisse principale)
+    const body = this._box(2.0, 1.4, 5.5, this.mat.train); body.position.y = 1.3; g.add(body);
+    // Chaudière cylindrique au-dessus (couchée le long de Z)
+    const boiler = this._cyl(0.85, 0.85, 4.6, this.mat.train, 18);
+    boiler.rotation.x = Math.PI / 2;
+    boiler.position.set(0, 2.2, -0.4);
+    g.add(boiler);
+    // Bandes rouges sur la chaudière
+    for (const zz of [-1.4, 1.4]) {
+      const band = this._cyl(0.86, 0.86, 0.2, this.mat.trainR, 18);
+      band.rotation.x = Math.PI / 2;
+      band.position.set(0, 2.2, zz - 0.4);
+      g.add(band);
+    }
+    // Cabine arrière (toit + parois)
+    const cab = this._box(2.0, 1.3, 1.8, this.mat.trainR); cab.position.set(0, 2.65, 1.8); g.add(cab);
+    const roof = this._box(2.2, 0.18, 2.0, this.mat.train); roof.position.set(0, 3.4, 1.8); g.add(roof);
+    // Phare / proue ronde
+    const proue = this._cyl(0.95, 0.85, 0.4, this.mat.train, 18);
+    proue.rotation.x = Math.PI / 2;
+    proue.position.set(0, 2.2, -2.95);
+    g.add(proue);
+    const lamp = this._sph(0.18, this.mat.trainG, 12);
+    lamp.position.set(0, 2.3, -3.18);
+    g.add(lamp);
+    // Cheminée évasée + panache de fumée
+    const stackBase = this._cyl(0.25, 0.32, 0.55, this.mat.train, 12);
+    stackBase.position.set(0, 3.15, -1.9);
+    g.add(stackBase);
+    const stackTop = this._cyl(0.42, 0.3, 0.3, this.mat.train, 12);
+    stackTop.position.set(0, 3.55, -1.9);
+    g.add(stackTop);
+    for (let i = 0; i < 3; i++) {
+      const puff = this._sph(0.5 + i * 0.18, this.mat.smoke, 10);
+      puff.position.set((Math.random() - 0.5) * 0.4, 4.1 + i * 0.6, -1.9 + (Math.random() - 0.5) * 0.3);
+      g.add(puff);
+    }
+    // Roues rouges (3 grandes par côté)
+    for (const sx of [-1.02, 1.02]) {
+      for (const wz of [-1.6, -0.2, 1.4]) {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.14, 16), this.mat.trainR);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(sx, 0.55, wz);
+        g.add(wheel);
+        const hub = this._sph(0.14, this.mat.trainG, 8);
+        hub.position.set(sx + (sx > 0 ? 0.05 : -0.05), 0.55, wz);
+        g.add(hub);
+      }
+    }
+    // Cloche en laiton sur la chaudière
+    const bell = this._sph(0.18, this.mat.trainG, 10);
+    bell.position.set(0, 3.18, -0.7);
+    bell.scale.y = 0.8;
+    g.add(bell);
     g.position.set(x, 0, z);
-    g.userData.kind = 'train'; g.userData.aabb = { w: 2.1, h: 3.2, d: 7, yOff: 0 };
+    g.userData.kind = 'train'; g.userData.aabb = { w: 2.1, h: 3.5, d: 6.0, yOff: 0 };
     parent.add(g); return g;
   }
 
@@ -629,14 +801,39 @@ export class World {
     parent.add(g); return g;
   }
 
+  // Pièce dorée à couronne (la majorité) ou bleue (1/5). On garde kind 'egg'
+  // pour préserver le scoring / pickup côté main.js.
   _egg(x, z, parent) {
     const g = new THREE.Group();
-    const egg = this._sph(0.35, this.mat.egg, 14); egg.scale.y = 1.3; g.add(egg);
+    const isBlue = Math.random() < 0.2;
+    const faceMat = isBlue ? this.mat.eggBlue : this.mat.egg;
+    // Disque doré (cylindre court orienté face caméra)
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.09, 28), faceMat);
+    disc.rotation.x = Math.PI / 2;                 // face plate orientée vers Z (caméra)
+    disc.castShadow = true; disc.receiveShadow = true;
+    g.add(disc);
+    // Bord (chanfrein cuivré)
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.05, 8, 28), this.mat.eggRim);
+    rim.rotation.y = Math.PI / 2;
+    g.add(rim);
+    // Couronne gravée (3 dents) au centre — petits cubes sur la face avant
+    const crownMat = this.mat.eggRim;
+    const crownBase = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.08, 0.02), crownMat);
+    crownBase.position.z = 0.055;
+    g.add(crownBase);
+    for (const sx of [-0.12, 0, 0.12]) {
+      const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.12, 0.02), crownMat);
+      tooth.position.set(sx, 0.08, 0.055);
+      g.add(tooth);
+    }
+    // Halo doux au sol
     const halo = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.7, 24), this.mat.eggHalo);
-    halo.rotation.x = -Math.PI / 2; halo.position.y = -0.4; g.add(halo);
+    halo.rotation.x = -Math.PI / 2; halo.position.y = -0.45; g.add(halo);
+
     g.position.set(x, 1.1, z);
     g.userData.kind = 'egg';
-    g.userData.aabb = { w: 0.7, h: 0.9, d: 0.7, yOff: 0.8 };
+    g.userData.aabb = { w: 0.9, h: 0.9, d: 0.4, yOff: 0.7 };
+    // léger spin autour Y déjà appliqué globalement (cf. update())
     parent.add(g); return g;
   }
 

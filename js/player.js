@@ -14,13 +14,21 @@ export class Player {
     this.body  = new THREE.Group();
     this.group.add(this.body);
 
-    const skin   = new THREE.MeshStandardMaterial({ color: 0x5fd873, roughness: 0.55, metalness: 0.05 });
-    const belly  = new THREE.MeshStandardMaterial({ color: 0xe6f2a8, roughness: 0.8 });
-    const dark   = new THREE.MeshStandardMaterial({ color: 0x1a3a20, roughness: 0.6 });
+    // Palette Pixar-ish western: vert clair acidulé + ventre crème jaune
+    const skin   = new THREE.MeshStandardMaterial({ color: 0x7ad670, roughness: 0.6, metalness: 0.0 });
+    const belly  = new THREE.MeshStandardMaterial({ color: 0xf2d680, roughness: 0.8 });   // ventre crème-orangé
+    const dark   = new THREE.MeshStandardMaterial({ color: 0x2a4a28, roughness: 0.7 });
     const claw   = new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.45 });
-    const eyeW   = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, emissive: 0xffffff, emissiveIntensity: 0.2 });
+    const eyeW   = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
     const eyeB   = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.15 });
-    const spikeM = new THREE.MeshStandardMaterial({ color: 0x3fa860, roughness: 0.6 });
+    const spikeM = new THREE.MeshStandardMaterial({ color: 0x4fa850, roughness: 0.6 });
+    // Aviator cap + accessories
+    const leather   = new THREE.MeshStandardMaterial({ color: 0x4a2a18, roughness: 0.55, metalness: 0.1 });   // cuir brun cap
+    const leatherD  = new THREE.MeshStandardMaterial({ color: 0x2e1a10, roughness: 0.6 });                    // bordure cap
+    const goggleRim = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.4, metalness: 0.3 });
+    const goggleLens= new THREE.MeshStandardMaterial({ color: 0x6fd4ff, roughness: 0.15, metalness: 0.4, emissive: 0x2a6080, emissiveIntensity: 0.6 });
+    const bandanaM  = new THREE.MeshStandardMaterial({ color: 0xd83a2a, roughness: 0.75 });                   // rouge bandana
+    const bandanaD  = new THREE.MeshStandardMaterial({ color: 0x8a1e14, roughness: 0.8 });                    // pli plus foncé
 
     const sph = (r, mat, s = 16) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, s, Math.max(8, s - 4)), mat); m.castShadow = true; m.receiveShadow = true; return m; };
     const cap = (r, l, mat) => { const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, l, 6, 10), mat); m.castShadow = true; m.receiveShadow = true; return m; };
@@ -50,7 +58,84 @@ export class Player {
       this.body.add(brow);
     }
 
-    for (let i = 0; i < 7; i++) {
+    // ----- Casquette d'aviateur (cuir brun) + lunettes + bandana rouge --------
+    // Calotte = demi-sphère plaquée sur le crâne
+    const capTop = new THREE.Mesh(
+      new THREE.SphereGeometry(0.55, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2),
+      leather
+    );
+    capTop.scale.set(1.02, 0.95, 1.05);
+    capTop.position.set(0, 2.45, -0.55);
+    capTop.castShadow = true;
+    this.body.add(capTop);
+
+    // Bordure plus sombre qui ceint la calotte (anneau-bourrelet à l'avant)
+    const capBrim = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.07, 8, 22, Math.PI), leatherD);
+    capBrim.rotation.x = Math.PI / 2;
+    capBrim.rotation.z = Math.PI;
+    capBrim.position.set(0, 2.42, -0.55);
+    capBrim.castShadow = true;
+    this.body.add(capBrim);
+
+    // Rabats latéraux (oreillettes)
+    for (const sx of [-1, 1]) {
+      const flap = sph(0.22, leather, 14);
+      flap.scale.set(0.45, 0.95, 0.7);
+      flap.position.set(sx * 0.5, 2.25, -0.55);
+      this.body.add(flap);
+      // Sangle / lacet
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.4), leatherD);
+      strap.position.set(sx * 0.4, 2.0, -0.55);
+      strap.rotation.z = sx * 0.2;
+      this.body.add(strap);
+    }
+
+    // Bouton/cabochon sommital
+    const capStud = sph(0.06, leatherD, 8);
+    capStud.position.set(0, 2.95, -0.55);
+    this.body.add(capStud);
+
+    // Lunettes d'aviateur — deux ronds posés sur le front
+    for (const sx of [-0.22, 0.22]) {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.045, 8, 18), goggleRim);
+      rim.rotation.x = Math.PI / 2 + 0.2;
+      rim.position.set(sx, 2.62, -0.92);
+      rim.castShadow = true;
+      this.body.add(rim);
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.14, 18), goggleLens);
+      lens.position.set(sx, 2.62, -0.96);
+      lens.rotation.x = -0.2;
+      this.body.add(lens);
+    }
+    // Pont entre les deux lunettes
+    const goggleBridge = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.05), goggleRim);
+    goggleBridge.position.set(0, 2.62, -0.94);
+    this.body.add(goggleBridge);
+    // Sangle élastique passant derrière la tête
+    const goggleStrap = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.025, 6, 22, Math.PI * 1.1), leatherD);
+    goggleStrap.rotation.x = Math.PI / 2 + 0.15;
+    goggleStrap.position.set(0, 2.6, -0.45);
+    this.body.add(goggleStrap);
+
+    // ----- Bandana rouge autour du cou -----
+    const bandanaRing = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.09, 10, 22), bandanaM);
+    bandanaRing.rotation.x = Math.PI / 2 - 0.35;
+    bandanaRing.position.set(0, 1.72, -0.22);
+    bandanaRing.castShadow = true;
+    this.body.add(bandanaRing);
+    // Triangle pointu du bandana, qui pendouille devant
+    const bandanaTip = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 4), bandanaM);
+    bandanaTip.position.set(0, 1.45, -0.42);
+    bandanaTip.rotation.x = -0.4;
+    bandanaTip.rotation.y = Math.PI / 4;
+    this.body.add(bandanaTip);
+    // Noeud sur le côté
+    const bandanaKnot = sph(0.1, bandanaD, 10);
+    bandanaKnot.position.set(0.28, 1.78, -0.18);
+    this.body.add(bandanaKnot);
+
+    // ----- Spikes le long du dos (réduits car la casquette couvre le crâne) ----
+    for (let i = 2; i < 7; i++) {
       const t = i / 6;
       const spike = new THREE.Mesh(new THREE.ConeGeometry(0.12 - t * 0.04, 0.26 - t * 0.14, 4), spikeM);
       spike.position.set(0, 1.95 - t * 0.25, 0.1 + t * 0.95); spike.castShadow = true;
