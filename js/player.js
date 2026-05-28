@@ -193,16 +193,16 @@ export class Player {
 
   moveLeft()  { if (this.laneIndex > 0) { this.laneIndex--; this.targetX = LANES[this.laneIndex]; } }
   moveRight() { if (this.laneIndex < 2) { this.laneIndex++; this.targetX = LANES[this.laneIndex]; } }
-  jump()  { if (this.dead) return; if (!this.jumping) { this.vy = 11; this.jumping = true; this.sliding = false; this.slideTimer = 0; this.sfx.jump(); } }
-  slide() { if (this.dead) return; if (!this.sliding && !this.jumping) { this.sliding = true; this.slideTimer = 0.7; this.sfx.slide(); } }
+  jump()  { if (this.dead) return; if (!this.jumping) { this.vy = 13; this.jumping = true; this.sliding = false; this.slideTimer = 0; this.sfx.jump(); } }
+  slide() { if (this.dead) return; if (!this.sliding && !this.jumping) { this.sliding = true; this.slideTimer = 0.55; this.sfx.slide(); } }
   die()   { if (this.dead) return; this.dead = true; this.sfx.hit(); }
 
   update(dt, speed) {
-    this.group.position.x += (this.targetX - this.group.position.x) * Math.min(1, dt * 12);
+    this.group.position.x += (this.targetX - this.group.position.x) * Math.min(1, dt * 20);
     const leanTarget = (this.targetX - this.group.position.x) * 0.12;
     this.body.rotation.z += (leanTarget - this.body.rotation.z) * 0.15;
 
-    const g = 28;
+    const g = 34;
     this.group.position.y += this.vy * dt; this.vy -= g * dt;
     if (this.group.position.y <= 0) { this.group.position.y = 0; this.vy = 0; this.jumping = false; }
 

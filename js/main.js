@@ -173,7 +173,7 @@ onResize();
 // ---------- Game lifecycle ----------
 function startGame() {
   state.phase = 'playing';
-  state.speed = 18;
+  state.speed = 26;
   state.score = 0;
   state.eggs = 0;
   state.combo = 1;
@@ -218,12 +218,12 @@ const DAY_CYCLE_M = 900;
 // Palette western sunset : journée pêche chaude, nuit profonde indigo
 const _col = {
   skyDay   : new THREE.Color(0xf6cca0),   // ciel sunset jour (peach)
-  skyNight : new THREE.Color(0x0d1430),   // nuit étoilée profonde
+  skyNight : new THREE.Color(0x3a3868),   // nuit éclairée (bleu lavé, pas opaque)
   skyDusk  : new THREE.Color(0xf07a3a),   // bande horizon orange
   sunNoon  : new THREE.Color(0xfff0c4),   // pâle chaud
-  sunWarm  : new THREE.Color(0xff7a3a),   // couchant
+  sunWarm  : new THREE.Color(0xffb070),   // couchant moins saturé
   hemiDay  : new THREE.Color(0xffd9a8),
-  hemiNight: new THREE.Color(0x2a2440),
+  hemiNight: new THREE.Color(0x6a6890),   // ciel de nuit plus laiteux
   tmp      : new THREE.Color(),
   tmp2     : new THREE.Color(),
 };
@@ -237,19 +237,20 @@ function updateDayNight(travelled) {
   // Move the sun in a visible arc (affects shadow direction too)
   const R = 22;
   sun.position.set(Math.cos(ang) * R * 0.6, Math.max(-4, Math.sin(ang) * R), 10);
-  sun.intensity = Math.max(0, sunEl) * 1.35 + 0.05;
+  // Plancher de luminosité remont\u00e9 : la nuit reste \u00e9clair\u00e9e (clair de lune fort)
+  sun.intensity = Math.max(0, sunEl) * 1.0 + 0.85;
   sun.color.copy(_col.sunWarm).lerp(_col.sunNoon, Math.max(0, sunEl));
 
-  hemi.intensity = 0.2 + dayT * 0.55;
+  hemi.intensity = 0.8 + dayT * 0.5;
   hemi.color.copy(_col.hemiNight).lerp(_col.hemiDay, dayT);
 
-  rim.intensity = 0.3 + (1 - dayT) * 0.75;
+  rim.intensity = 0.4 + (1 - dayT) * 0.4;
 
   // Sky + fog blend
   _col.tmp.copy(_col.skyNight).lerp(_col.skyDay, dayT);
   _col.tmp.lerp(_col.skyDusk, duskT * 0.55);
   scene.background.copy(_col.tmp);
-  scene.fog.color.copy(_col.tmp).multiplyScalar(0.85);
+  scene.fog.color.copy(_col.tmp).multiplyScalar(0.95);
 
   // Stars fade with sun below horizon
   if (stars) stars.material.opacity = Math.max(0, -sunEl) * 0.95 + 0.05;
@@ -258,7 +259,7 @@ function updateDayNight(travelled) {
   if (world.winMat) world.winMat.emissiveIntensity = 0.3 + (1 - dayT) * 1.7;
 
   // Bloom stronger at night for neon vibes
-  bloom.strength = 0.4 + (1 - dayT) * 0.55;
+  bloom.strength = 0.35 + (1 - dayT) * 0.2;
 }
 
 // ---------- Main loop ----------
@@ -267,9 +268,9 @@ function tick() {
   let dt = Math.min(clock.getDelta(), 1 / 30);
 
   if (state.phase === 'playing') {
-    // Speed ramp: grows with distance travelled. Gentle early, steady late.
-    // speed(m) = 18 + travelled * 0.015, capped at 80 units/s.
-    state.speed = Math.min(80, 18 + world.travelled * 0.015);
+    // Speed ramp: start plus rapide, monte vite, plafond plus haut.
+    // speed(m) = 26 + travelled * 0.022, capped at 105 units/s.
+    state.speed = Math.min(105, 26 + world.travelled * 0.022);
 
     world.update(dt, state.speed, camera.position.z);
     player.update(dt, state.speed);
